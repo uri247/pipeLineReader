@@ -30,7 +30,7 @@ void PipedProcess::start(const std::string& cmd) {
     int child_id = fork();
     std::cout << "Forked. Child ID: " << child_id << std::endl;
 
-    //    sleep( 12 );
+    // sleep( 30 );
 
     if( child_id < 0 ) {
         throw std::system_error();
