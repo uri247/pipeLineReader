@@ -6,4 +6,7 @@ set(VERSION_MINOR 1)
 set(VERSION_REV 0)
 
 
-add_executable(parent parent.cpp)
+add_executable(parent
+    parent.h parent.cpp pipe.h pipe.cpp)
+
+add_executable(execute exec.cpp)
