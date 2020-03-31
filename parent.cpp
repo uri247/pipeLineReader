@@ -1,10 +1,9 @@
 #include <iostream>
 #include <string>
-#include <system_error>
-#include <cstring>
 #include <unistd.h>
 #include "parent.h"
 #include "pipe.h"
+#pragma ide diagnostic ignored "MemberFunctionCanBeStatic"
 
 
 int main()
@@ -23,23 +22,29 @@ int main()
 Application::Application() = default;
 
 
-int Application::main( ) {
+int Application::main( )
+{
+    play_bash();
+    return 0;
+}
+
+
+void Application::play_bash( )
+{
+
     PipedProcess process;
 
     process.start( "/bin/bash" );
+    process.write( std::string("lsb_release -i -c -r -d\n"));
+    process.write( std::string("exit\n"));
 
-    std::string msg{"df\n"};
-    int wrote = process.write( msg );
-    std::cout << "wrote " << wrote << " characters" << std::endl;
-
-    char buff[500];
+    char buff[1020];
     while(true) {
-        int red = process.read(buff, 300);
+        int red = process.read(buff, 1000);
         if( red == 0 )
             break;
         buff[red] = 0x00;
         std::cout << buff << std::flush;
     }
 
-    return 0;
 }

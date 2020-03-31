@@ -30,16 +30,13 @@ void PipedProcess::start(const std::string& cmd) {
     int child_id = fork();
     std::cout << "Forked. Child ID: " << child_id << std::endl;
 
-//    std::cout << "Sleeping 30 ... " << std::flush;
-//    sleep( 12 );
-//    std::cout << "done" << std::endl;
-
+    //    sleep( 12 );
 
     if( child_id < 0 ) {
         throw std::system_error();
-    } else if( child_id == 0 ) {
+    }
+    else if( child_id == 0 ) {
         // This is the child
-        std::cout << "Child is speaking" << std::endl;
 
         // close un necessary ends of the pipes
         m_parent_to_child_pipe.close( Pipe::write_end );
@@ -67,18 +64,18 @@ void PipedProcess::start(const std::string& cmd) {
         // Child process is now running, and stdin/stdout/stderr correctly redirected. Exec the process
         // we want
 
-        const char* argv[] = {"shell", "-c", "apt list", nullptr };
-        execv("/bin/sh", const_cast<char**>(argv));
+        const char* argv[] = {"shell", "-c", cmd.c_str(), nullptr};
+        execv( "/bin/sh", const_cast<char**>(argv));
         throw std::system_error();
-    } else {
-        std::cout << "Parent is speaking" << std::endl;
+    }
+    else {
+        // This is the parent
 
         // close unused ends of pipes
         m_parent_to_child_pipe.close( Pipe::read_end );
         m_child_to_parent_pipe.close( Pipe::write_end );
     }
 }
-
 
 int PipedProcess::write(const std::string& msg)
 {
