@@ -24,13 +24,16 @@ std::string get_quote(std::istream& strm)
         lines.push_back( std::move( line ));
     }
 
-    int i=0;
-    ss << lines[i++];
-    while( i+1 < lines.size() ) {
-        ss << ' ' << lines[ i++ ];
+    if( !lines.empty() ) {
+        int i = 0;
+        ss << lines[ i++ ];
+        while( i + 1 < lines.size()) {
+            ss << ' ' << lines[ i++ ];
+        }
+        if( i < lines.size()) {
+            ss << std::endl << lines[ i ];
+        }
     }
-    ss << std::endl;
-    ss << lines[i];
 
     return ss.str();
 }
