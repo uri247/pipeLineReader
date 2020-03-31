@@ -40,7 +40,7 @@ int main()
     std::string line;
 
     // tell parent that chile is ready
-    std::cout << "READY\0" << std::flush;
+    std::cout << "READY" << '\0' << std::flush;
 
     while( static_cast<bool>(q_file) ) {
         std::string request;
