@@ -31,11 +31,11 @@ public:
 class PipedProcess
 {
 private:
-    Pipe m_stdin_pipe;
-    Pipe m_stdout_pipe;
+    Pipe m_parent_to_child_pipe;
+    Pipe m_child_to_parent_pipe;
 
 public:
     void start(const std::string& cmd);
-    int write(std::string msg);
+    int write(const std::string& msg);
     int read(char* buffer, int size);
 };

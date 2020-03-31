@@ -28,13 +28,17 @@ int Application::main( ) {
 
     process.start( "/bin/bash" );
 
-//    std::string msg{"ls\n"};
-//    int wrote = process.write( msg );
-//    std::cout << "wrote " << wrote << " characters" << std::endl;
+    std::string msg{"df\n"};
+    int wrote = process.write( msg );
+    std::cout << "wrote " << wrote << " characters" << std::endl;
 
     char buff[500];
-    while( process.read( buff, 500 )) {
-        std::cout << buff;
+    while(true) {
+        int red = process.read(buff, 300);
+        if( red == 0 )
+            break;
+        buff[red] = 0x00;
+        std::cout << buff << std::flush;
     }
 
     return 0;
