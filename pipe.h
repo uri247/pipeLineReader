@@ -9,6 +9,9 @@ public:
 
 class Pipe
 {
+public:
+    enum end_type { read_end=0, write_end=1 };
+
 private:
     int _value[2];
 
@@ -16,16 +19,16 @@ public:
     Pipe() : _value{-1, -1} { }
 
     virtual ~Pipe() {
-        close( read_end() );
-        close( write_end() );
+        close( read_end );
+        close( write_end );
     }
 
     void pipe();
-    int& read_end() { return _value[0]; }
-    int& write_end() { return _value[1]; }
+    int& read_fd() { return _value[read_end]; }
+    int& write_fd() { return _value[write_end]; }
 
 public:
-    void close(int& fd);
+    void close(end_type end);
 };
 
 
@@ -36,7 +39,8 @@ private:
     Pipe m_child_to_parent_pipe;
 
 public:
-    void start(const std::string& cmd);
+    void command(const std::string& cmd);
+    void start(const std::string& path, const char *const argv[]);
     int write(const std::string& msg);
     int read(char* buffer, int size);
 };

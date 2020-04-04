@@ -27,7 +27,7 @@ Application::Application() = default;
 int Application::main( )
 {
     play_bash();
-    // play_child();
+    play_child();
     return 0;
 }
 
@@ -64,8 +64,10 @@ void Application::play_child( )
     PipedProcess process;
     char buff[1020];
     std::string msg;
+    const char* const argv [] = { nullptr, nullptr };
 
-    process.start( "./child" );
+    process.start( std::string("./child"), argv );
+
     msg = get_msg( process );
     std::cout << msg << std::endl;
 
@@ -84,8 +86,8 @@ void Application::play_bash( )
 {
     PipedProcess process;
 
-    process.start( "/bin/bash" );
-    process.write( std::string( "sleep 40\n" ) );
+    process.command( "/bin/bash" );
+    process.write( std::string( "sleep 5\n" ) );
     process.write( std::string("lsb_release -i -c -r -d\n"));
     process.write( std::string("exit\n"));
 
