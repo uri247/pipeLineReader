@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <system_error>
-#include <cassert>
 #include <unistd.h>
+#include <poll.h>
 #include "pipe.h"
 #include "fcntl.h"
 
@@ -87,6 +87,8 @@ void PipedProcess::start(const std::string& path, const char *const argv[])
         m_parent_to_child_pipe.close( Pipe::read_end );
         m_child_to_parent_pipe.close( Pipe::write_end );
 
+        fd_set set;
+
         // change the reading pipe to async
         int flags = fcntl(m_child_to_parent_pipe.read_fd(), F_GETFL);
         flags = O_NONBLOCK;
@@ -107,17 +109,22 @@ int PipedProcess::read(char* buffer, int size)
     int red;
     int tries = 0;
 
-    while( true ) {
-        red = ::read(m_child_to_parent_pipe.read_fd(), buffer, size);
-        if( red == -1 && errno == EAGAIN ) {
-            ++tries;
-            if( tries == timeout )
-                throw timeout_exception("time out reading from pipe");
-            sleep( 1 );
-        }
-        else {
-            break;
-        }
-    }
+    pollfd fd = {m_child_to_parent_pipe.read_fd(), POLLIN, 0 };
+    poll( &fd, 1, timeout * 1000 );
+    red = ::read( m_child_to_parent_pipe.read_fd(), buffer, size );
     return red;
+
+//    while( true ) {
+//        red = ::read(m_child_to_parent_pipe.read_fd(), buffer, size);
+//        if( red == -1 && errno == EAGAIN ) {
+//            ++tries;
+//            if( tries == timeout )
+//                throw timeout_exception("time out reading from pipe");
+//            sleep( 1 );
+//        }
+//        else {
+//            break;
+//        }
+//    }
+//    return red;
 }

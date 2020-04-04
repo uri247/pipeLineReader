@@ -72,6 +72,7 @@ void Application::play_child( )
     std::cout << msg << std::endl;
 
     for( int i=0; i<10000000; ++i )
+    // for( int i=0; i<200; ++i )
     {
         process.write( std::string("RECORD\n"));
         msg = get_msg( process );
