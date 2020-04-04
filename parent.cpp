@@ -26,8 +26,8 @@ Application::Application() = default;
 
 int Application::main( )
 {
-//    play_bash();
-    play_child();
+    play_bash();
+    // play_child();
     return 0;
 }
 
@@ -85,6 +85,7 @@ void Application::play_bash( )
     PipedProcess process;
 
     process.start( "/bin/bash" );
+    process.write( std::string( "sleep 40\n" ) );
     process.write( std::string("lsb_release -i -c -r -d\n"));
     process.write( std::string("exit\n"));
 

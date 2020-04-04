@@ -1,4 +1,11 @@
 #pragma once
+#include <stdexcept>
+
+class timeout_exception :public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
 
 class Pipe
 {
@@ -6,25 +13,19 @@ private:
     int _value[2];
 
 public:
-    enum end_type {read_end=0, write_end=1};
-
-public:
     Pipe() : _value{-1, -1} { }
 
     virtual ~Pipe() {
-        close_both();
+        close( read_end() );
+        close( write_end() );
     }
 
     void pipe();
-    int& read_pipe() { return _value[read_end]; }
-    int& write_pipe() { return _value[write_end]; }
-    void close(end_type end);
+    int& read_end() { return _value[0]; }
+    int& write_end() { return _value[1]; }
 
-    void close_both() {
-        close( read_end );
-        close( write_end );
-    }
-
+public:
+    void close(int& fd);
 };
 
 
