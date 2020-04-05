@@ -87,11 +87,9 @@ void PipedProcess::start(const std::string& path, const char *const argv[])
         m_parent_to_child_pipe.close( Pipe::read_end );
         m_child_to_parent_pipe.close( Pipe::write_end );
 
-        fd_set set;
-
         // change the reading pipe to async
-        int flags = fcntl(m_child_to_parent_pipe.read_fd(), F_GETFL);
-        flags = O_NONBLOCK;
+        unsigned int flags = fcntl(m_child_to_parent_pipe.read_fd(), F_GETFL);
+        flags |=  static_cast<unsigned int>(O_NONBLOCK);
         fcntl (m_child_to_parent_pipe.read_fd(), F_SETFL, flags );
     }
 }
@@ -105,26 +103,19 @@ int PipedProcess::write(const std::string& msg)
 
 int PipedProcess::read(char* buffer, int size)
 {
-    int timeout = 30;
     int red;
-    int tries = 0;
+    int result;
 
     pollfd fd = {m_child_to_parent_pipe.read_fd(), POLLIN, 0 };
-    poll( &fd, 1, timeout * 1000 );
+    result = poll( &fd, 1, m_timeout );
+    if( result == 0 ) {
+        // timeout
+        throw timeout_exception( "timeout polling for process" );
+    }
+    if( !(static_cast<unsigned int>(fd.revents) & static_cast<unsigned int>(POLLIN)) ) {
+        throw poll_exception( "non read event when polling for process" );
+    }
     red = ::read( m_child_to_parent_pipe.read_fd(), buffer, size );
     return red;
 
-//    while( true ) {
-//        red = ::read(m_child_to_parent_pipe.read_fd(), buffer, size);
-//        if( red == -1 && errno == EAGAIN ) {
-//            ++tries;
-//            if( tries == timeout )
-//                throw timeout_exception("time out reading from pipe");
-//            sleep( 1 );
-//        }
-//        else {
-//            break;
-//        }
-//    }
-//    return red;
 }

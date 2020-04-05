@@ -1,11 +1,13 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <algorithm>
 #include <unistd.h>
-#include <array>
 #include "parent.h"
 #include "pipe.h"
 #pragma ide diagnostic ignored "MemberFunctionCanBeStatic"
+
+#define cpp_context
 
 
 int main()
@@ -26,36 +28,35 @@ Application::Application() = default;
 
 int Application::main( )
 {
-    play_bash();
-    play_child();
+//    play_start();
+//    play_command();
+//    play_bash();
+//    play_child();
+    play_timeout();
     return 0;
 }
 
-std::string Application::get_msg(PipedProcess& process)
+
+std::string Application::read_to_delim( PipedProcess& process, char delim)
 {
-    std::string msg;
-    bool keep = true;
+    std::ostringstream ss;
 
-    do {
-        std::array<char, 1020> buff{};
-        int i;
-
-        int red = process.read( &buff[ 0 ], 1000 );
-        if( red == 0 ) {
-            keep = false;
-        }
-        else {
-            for( i = 0; i < red; ++i ) {
-                if( buff[ i ] == 0 ) {
-                    keep = false;
-                    break;
-                }
-            }
-            msg += std::string( &buff[ 0 ], i );
-        }
+    while(true) {
+        char buff[1020];
+        int red = process.read(buff, 1000);
+        if( red == 0 )
+            break;
+        ss.write(buff, red);
+        if( buff[red - 1] == delim )
+            break;
     }
-    while( keep );
+    return ss.str();
+}
 
+
+std::string Application::get_msg(PipedProcess& process) {
+    std::string msg = read_to_delim(process, '\0' );
+    msg.pop_back();
     return msg;
 }
 
@@ -83,22 +84,63 @@ void Application::play_child( )
     process.write( std::string( "QUIT\n"));
 }
 
+void Application::play_start()
+{
+    const std::string path("/usr/bin/lsb_release");
+    const char* const argv [] = { "lsb_release", "-i", "-c", "-r", "-d", nullptr };
+    PipedProcess process;
+    process.start(path, argv);
+    std::string output = read_to_delim( process, '\n' );
+    std::cout << output;
+}
+
+
+void Application::play_command( ) {
+    PipedProcess process;
+    process.command( "env | grep PATH" );
+    std::string output = read_to_delim( process, '\n' );
+    std::cout << output << std::endl;
+}
+
 void Application::play_bash( )
 {
     PipedProcess process;
+    std::string reply;
+    const char* const argv[] = {nullptr};
+    process.start(std::string("/bin/bash"), argv );
 
-    process.command( "/bin/bash" );
-    process.write( std::string( "sleep 5\n" ) );
-    process.write( std::string("lsb_release -i -c -r -d\n"));
-    process.write( std::string("exit\n"));
+    process.write( "cd /proc\n" );
+    process.write( "pwd\n" );
+    reply = read_to_delim( process, '\n' );
+    std::cout << reply << std::flush;
 
-    char buff[1020];
-    while(true) {
-        int red = process.read(buff, 1000);
-        if( red == 0 )
-            break;
-        buff[red] = 0x00;
-        std::cout << buff << std::flush;
+    process.write( "var=\"Hello bash auto\"\n" );
+    process.write( "echo \"${var}\"\n" );
+    reply = read_to_delim( process, '\n' );
+    std::cout << reply << std::flush;
+
+}
+
+void Application::play_timeout( )
+{
+    cpp_context {
+        PipedProcess process;
+        process.set_timeout(5000 );
+        process.command( std::string( "sleep 3; echo \"good morning\"\n" ));
+        std::string reply = read_to_delim( process, '\n' );
+        std::cout << reply << std::flush;
     }
 
+    cpp_context {
+        try {
+            PipedProcess process;
+            process.set_timeout( 5000 );
+            process.command( std::string( "sleep 8; echo \"good morning\"\n" ));
+            std::string reply = read_to_delim( process, '\n' );
+            std::cout << "something went wrong. shouldn't be here" << std::endl;
+        }
+        catch( const timeout_exception& ex ) {
+            std::cout << "time out as expected" << std::endl;
+        }
+    };
 }

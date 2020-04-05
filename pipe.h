@@ -6,6 +6,11 @@ public:
     using std::runtime_error::runtime_error;
 };
 
+class poll_exception :public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
 
 class Pipe
 {
@@ -37,10 +42,12 @@ class PipedProcess
 private:
     Pipe m_parent_to_child_pipe;
     Pipe m_child_to_parent_pipe;
+    int m_timeout = 4 * 1000;
 
 public:
     void command(const std::string& cmd);
     void start(const std::string& path, const char *const argv[]);
     int write(const std::string& msg);
     int read(char* buffer, int size);
+    void set_timeout(int timeout) { m_timeout = timeout; }
 };
