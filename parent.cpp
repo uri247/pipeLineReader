@@ -28,10 +28,10 @@ Application::Application() = default;
 
 int Application::main( )
 {
-//    play_start();
-//    play_command();
-//    play_bash();
-//    play_child();
+    play_start();
+    play_command();
+    play_bash();
+    play_child();
     play_timeout();
     return 0;
 }
